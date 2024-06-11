@@ -68,3 +68,21 @@ This project is a weather application built with FastAPI, Jinja2 for templating,
 - The data is cached in Redis for 24 hours to reduce the number of API calls.
 
 ### Project Structure
+
+- `main.py`: The main FastAPI application file.
+- `templates/template.html`: The Jinja2 template for rendering the weather data.
+- `requirements.txt`: A list of dependencies required for the project.
+- `README.md`: This file.
+
+### Dependencies
+
+- FastAPI
+- Jinja2
+- httpx
+- redis.asyncio
+
+You can install all dependencies with:
+
+```sh
+pip install -r requirements.txt
+```
