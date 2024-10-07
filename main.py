@@ -5,11 +5,12 @@ import httpx
 from json import JSONDecodeError, dumps, loads
 import redis.asyncio as redis
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+    r = redis.Redis(host='redis-server', port=6379, decode_responses=True)
     try:
         yield {'redis_client': r}
     finally:
@@ -36,6 +37,16 @@ async def get_weather(city: str):
         return None
 
 
+def get_seconds_until_midnight():
+    now = datetime.now()
+    # Calculate midnight by setting hours, minutes, and seconds to zero for tomorrow
+    midnight = (now + timedelta(days=1)).replace(hour=0,
+                                                 minute=0, second=0, microsecond=0)
+    # Calculate the difference in seconds
+    seconds_until_midnight = (midnight - now).seconds
+    return seconds_until_midnight
+
+
 @app.get('/', response_class=HTMLResponse)
 async def weather_app(request: Request, city: str | None = None):
     weather_data = None
@@ -45,6 +56,6 @@ async def weather_app(request: Request, city: str | None = None):
             weather_data = loads(weather_data_str)
         else:
             weather_data = await get_weather(city)
-            await request.state.redis_client.set(city, dumps(weather_data), ex=86400)
+            await request.state.redis_client.set(city, dumps(weather_data), ex=get_seconds_until_midnight())
 
     return templates.TemplateResponse('template.html', {'request': request, 'weather_data': weather_data, 'city': city})
